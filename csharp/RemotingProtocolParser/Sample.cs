@@ -11,27 +11,22 @@ using System.IO;
 using System.Runtime.Remoting.Messaging;
 namespace RemotingProtocolParser
 {
-    public class Sample
+    public class SampleTest
     {
-        public void Test()
+        public void ReadRequestAndWriteResponse()
         {
             IPAddress[] addressList = Dns.GetHostEntry(Environment.MachineName).AddressList;
             var endpoint = new IPEndPoint(addressList[addressList.Length - 1], 9900);
             new TcpListener().Listen(endpoint);
 
             var url = string.Format("tcp://{0}/remote.rem", endpoint);
+            var service = RemotingServices.Connect(typeof(ServiceClass), url) as ServiceClass;
+            Console.WriteLine("Do Service Call, reutrn={0}", service.Do("Hi"));
+        }
 
-            try
-            {
-                var service = RemotingServices.Connect(typeof(ServiceClass), url) as ServiceClass;
-                service.Do("Hi");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("");
-                Console.WriteLine("Error");
-                Console.WriteLine(e.Message);
-            }
+        public void WriteRequestAndReadResponse()
+        {
+
         }
 
         public class ServiceClass : MarshalByRefObject
@@ -115,25 +110,13 @@ namespace RemotingProtocolParser
                 if (e.SocketError == SocketError.Success)
                 {
                     totalBuffer = Combine(totalBuffer, e.Buffer);
-                    //读取
-                    var data = Encoding.ASCII.GetString(e.Buffer);
-                    buffers.Append(data);
-                    Console.WriteLine("Received:{0}", data);
-                    Console.WriteLine();
 
                     if (e.AcceptSocket.Available == 0)
                     {
-                        //读取完毕
-                        Console.WriteLine();
-                        Console.WriteLine("Receive Complete.Data:{0}", buffers.ToString());
-                        Console.WriteLine("Receive Complete.Data:{0}|{1}", totalBuffer.Length, Encoding.ASCII.GetString(totalBuffer));
-                        Console.WriteLine();
-
-
                         //.Net Remoting Protocol Parser
-                        //Read
-
-                        //1. Read Preamble, will be ".Net"
+                        #region Read Request
+                        Console.WriteLine("==== .Net Remoting Protocol Parser ====");
+                        //1. Preamble, will be ".NET"
                         Console.WriteLine("Preamble: {0}", Encoding.ASCII.GetString(new byte[] { 
                             totalBuffer[0], 
                             totalBuffer[1], 
@@ -213,12 +196,41 @@ namespace RemotingProtocolParser
                         //using BinaryFormatterSink default
                         var requestMessage = BinaryFormatterHelper.DeserializeObject(requestStream) as MethodCall;
                         DumpMessage(requestMessage);
+                        #endregion
 
                         //重置
                         buffers = new StringBuilder();
-                        //TODO:write by protocol
-                        Byte[] sendBuffer = Encoding.ASCII.GetBytes("result from server");
-                        e.SetBuffer(sendBuffer, 0, sendBuffer.Length);
+                        totalBuffer = new byte[0];
+
+                        #region Write Response
+
+                        //http://labs.developerfusion.co.uk/SourceViewer/browse.aspx?assembly=SSCLI&namespace=System.Runtime.Remoting
+                        //else if (name.Equals("__Return"))
+                        var responeMessage = new MethodResponse(new Header[] { new Header("__Return", "hi") }, requestMessage);
+
+                        //responeMessage.ReturnValue//can not set
+                        var responseStream = BinaryFormatterHelper.SerializeObject(responeMessage);
+                        //Preamble
+                        var preamble = Encoding.ASCII.GetBytes(".NET");
+                        foreach (var b in preamble)
+                            WriteByte(b);
+                        //MajorVersion
+                        WriteByte((byte)1);
+                        //MinorVersion
+                        WriteByte((byte)0);
+                        //Operation
+                        WriteUInt16(TcpOperations.Reply);
+                        //TcpContentDelimiter and ContentLength
+                        WriteUInt16(0);
+                        WriteInt32(responseStream.Length);
+                        //Headers
+                        WriteUInt16(TcpHeaders.EndOfHeaders);
+                        //ResponseStream/Message
+                        foreach (var b in responseStream)
+                            WriteByte(b);
+                        #endregion
+
+                        e.SetBuffer(totalBuffer, 0, totalBuffer.Length);
                         if (!e.AcceptSocket.SendAsync(e))
                         {
                             this.ProcessSend(e);
@@ -329,6 +341,23 @@ namespace RemotingProtocolParser
                 Console.WriteLine("\t{0}: {1}", i, data[i]);
         }
 
+        void WriteByte(byte data)
+        {
+            totalBuffer = Combine(totalBuffer, new byte[] { data });
+        }
+        void WriteUInt16(UInt16 data)
+        {
+            WriteByte((byte)data);
+            WriteByte((byte)(data >> 8));
+        }
+        void WriteInt32(int data)
+        {
+            WriteByte((byte)data);
+            WriteByte((byte)(data >> 8));
+            WriteByte((byte)(data >> 16));
+            WriteByte((byte)(data >> 24));
+        }
+
         #region MS Remoting Sourcecode
         public class TcpHeaders
         {
@@ -352,6 +381,12 @@ namespace RemotingProtocolParser
             internal const byte Int32 = 4;
             internal const byte UInt16 = 3;
             internal const byte Void = 0;
+        }
+        public class TcpOperations
+        {
+            internal const ushort OneWayRequest = 1;
+            internal const ushort Reply = 2;
+            internal const ushort Request = 0;
         }
         #endregion
 
