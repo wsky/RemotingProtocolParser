@@ -1,4 +1,4 @@
-RemotingProtocolParser
+Remoting Protocol Parser
 ======================
 
 Help communicating with .NET Remoting via MS build-in Binary or SOAP.
@@ -20,17 +20,18 @@ WriteMessage();
 
 //read
 //just like write sequence
-
 ```
 
 
-Upcoming
+## Upcoming
+
 - .Net Remoting MockServer for testing
 - parser of NodeJS
 - parser of Java
 
-Not Support
-- Chunked (I think it useless)
+## Not Support
+
+- Chunked (I think it useless for RPC)
 - SOAP via TCP/HTTP (you can use other standard lib or impl yourself)
 
 ## Reference
