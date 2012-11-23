@@ -210,22 +210,22 @@ namespace RemotingProtocolParser
 
                         //responeMessage.ReturnValue//can not set
                         var responseStream = BinaryFormatterHelper.SerializeObject(responeMessage);
-                        //Preamble
+                        //1.Preamble
                         var preamble = Encoding.ASCII.GetBytes(".NET");
                         foreach (var b in preamble)
                             WriteByte(b);
-                        //MajorVersion
+                        //2.MajorVersion
                         WriteByte((byte)1);
-                        //MinorVersion
+                        //3.MinorVersion
                         WriteByte((byte)0);
-                        //Operation
+                        //4.Operation
                         WriteUInt16(TcpOperations.Reply);
-                        //TcpContentDelimiter and ContentLength
+                        //5.TcpContentDelimiter and ContentLength
                         WriteUInt16(0);
                         WriteInt32(responseStream.Length);
-                        //Headers
+                        //6.Headers
                         WriteUInt16(TcpHeaders.EndOfHeaders);
-                        //ResponseStream/Message
+                        //7.ResponseStream/Message
                         foreach (var b in responseStream)
                             WriteByte(b);
                         #endregion

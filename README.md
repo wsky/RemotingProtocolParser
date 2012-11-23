@@ -8,7 +8,7 @@ You can refer it to build your CrossPlatform-ServiceFramework/RPC written by oth
 Protocal parser logic:
 
 ```c#
-//write
+//Read
 //1. Read Preamble, will be ".Net"
 //2. MajorVersion, will be 1
 //3. MinorVersion, will be 0
@@ -17,8 +17,9 @@ Protocal parser logic:
 //6. Read Headers(ITransportHeaders)
 //7. RequestStream/Message
 
-//read
-//just like write sequence
+//Write
+//same as read
+
 ```
 
 
