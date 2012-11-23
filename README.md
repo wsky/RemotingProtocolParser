@@ -9,14 +9,13 @@ Protocal parser logic:
 
 ```c#
 //write
-WritePreambleAndVersion();
-WriteOperationCode();
-WriteContentDelimiter();
-WriteContentLength();
-WriteTransportHeaders();
-//message
-WriteMessageHeaders();
-WriteMessage();
+//1. Read Preamble, will be ".Net"
+//2. MajorVersion, will be 1
+//3. MinorVersion, will be 0
+//4. Operation, will be 5 (request,onewayrequest...)
+//5. TcpContentDelimiter and ContentLength
+//6. Read Headers(ITransportHeaders)
+//7. RequestStream/Message
 
 //read
 //just like write sequence
@@ -26,8 +25,8 @@ WriteMessage();
 ## Upcoming
 
 - .Net Remoting MockServer for testing
-- parser of NodeJS
-- parser of Java
+- Parser of NodeJS
+- Parser of Java
 
 ## Not Support
 

@@ -145,7 +145,7 @@ namespace RemotingProtocolParser
                         Console.WriteLine("MinorVersion: {0}", totalBuffer[5]);
                         //4. Operation, will be 5 (request,onewayrequest...)
                         Console.WriteLine("Operation: {0}", (UInt16)(totalBuffer[6] & 0xFF | totalBuffer[7] << 8));
-                        //5. Delimiter and ContentLength
+                        //5. TcpContentDelimiter and ContentLength
                         var header = (UInt16)(totalBuffer[8] & 0xFF | totalBuffer[9] << 8);
                         if (header == 1)
                             Console.WriteLine("Chunked: {0}", true);
