@@ -25,6 +25,8 @@ Protocal parser logic:
 
 ## Upcoming
 
+- HTTP Parser
+- Buffer Improvement
 - .Net Remoting MockServer for testing
 - Parser of NodeJS
 - Parser of Java
