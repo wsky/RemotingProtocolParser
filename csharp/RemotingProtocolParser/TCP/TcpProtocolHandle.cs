@@ -113,9 +113,9 @@ namespace RemotingProtocolParser.TCP
             this.WriteInt32(this._contentLength = value);
         }
 
-        public IDictionary<string,Object> ReadTransportHeaders()
+        public IDictionary<string, object> ReadTransportHeaders()
         {
-            var dict = new Dictionary<string, Object>();
+            var dict = new Dictionary<string, object>();
             ushort headerType = this.ReadUInt16();
 
             while (headerType != TcpHeaders.EndOfHeaders)
@@ -159,24 +159,25 @@ namespace RemotingProtocolParser.TCP
                         default: throw new NotSupportedException();
                     }
                 }
+                headerType = this.ReadUInt16();
             }
             return dict;
         }
         /// <summary>write transport header. PS: "RequestUri" must be transport while request call
         /// </summary>
         /// <param name="headers"></param>
-        public void WriteTransportHeaders(IDictionary<string, string> headers)
+        public void WriteTransportHeaders(IDictionary<string, object> headers)
         {
             if (headers != null)
                 foreach (var i in headers)
                 {
                     if (i.Key.Equals("ContentType", StringComparison.OrdinalIgnoreCase))
-                        this.WriteContentTypeHeader(i.Value);
+                        this.WriteContentTypeHeader(i.Value.ToString());
                     else if (i.Key.Equals("RequestUri", StringComparison.OrdinalIgnoreCase))
                         //Request-Uri must be transport while request call
-                        this.WriteRequestUriHeader(i.Value);
+                        this.WriteRequestUriHeader(i.Value.ToString());
                     else
-                        this.WriteCustomHeader(i.Key, i.Value);
+                        this.WriteCustomHeader(i.Key, i.Value.ToString());
                 }
             this.WriteUInt16(TcpHeaders.EndOfHeaders);
         }
@@ -223,7 +224,7 @@ namespace RemotingProtocolParser.TCP
             this._source.Read(buffer, 0, length);
             return buffer;
         }
-        public void WriteBytes(byte[] value)
+        private void WriteBytes(byte[] value)
         {
             this._source.Write(value, 0, value.Length);
         }

@@ -50,5 +50,11 @@ namespace RemotingProtocolParser
             for (var i = 0; i < data.Length; i++)
                 Console.WriteLine("\t{0}: {1}", i, data[i]);
         }
+        public static void DumpDictionary(IDictionary<string, object> dict)
+        {
+            Console.WriteLine("\t---- Dictionary ----");
+            foreach (var i in dict)
+                Console.WriteLine("\t{0}: {1}", i.Key, i.Value);
+        }
     }
 }
