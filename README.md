@@ -27,8 +27,10 @@ Protocal parser logic:
 
 - HTTP Parser
 - Buffer Improvement
+- NSF supporing
 - .Net Remoting MockServer for testing
 - Parser of NodeJS
+- Parser of PHP
 - Parser of Java
 
 ## Not Support
