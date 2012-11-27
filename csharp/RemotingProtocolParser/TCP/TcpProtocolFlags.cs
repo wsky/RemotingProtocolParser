@@ -46,10 +46,4 @@ namespace RemotingProtocolParser.TCP
         public const ushort ContentLength = 0;
         public const ushort Chunked = 1;
     }
-
-    public class TcpTransportHeader
-    {
-        public const string RequestUri = "RequestUri";
-        public const string ContentType = "ContentType";
-    }
 }

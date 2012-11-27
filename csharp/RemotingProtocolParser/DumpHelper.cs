@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
@@ -22,39 +23,48 @@ namespace RemotingProtocolParser
     {
         public static void DumpMessage(IMessage msg)
         {
-            Console.WriteLine("");
-            Console.WriteLine("==== Message Dump ====");
-            Console.WriteLine("Type: {0}", msg);
+            WriteLine("");
+            WriteLine("==== Message Dump ====");
+            WriteLine("Type: {0}", msg);
             if (msg is MethodCall)
             {
                 var call = msg as MethodCall;
-                Console.WriteLine("Uri: {0}", call.Uri);
-                Console.WriteLine("---- MethodCall.Args ----");
+                WriteLine("Uri: {0}", call.Uri);
+                WriteLine("---- MethodCall.Args ----");
                 DumpArray(call.Args);
             }
-            Console.WriteLine("---- Properties ----");
+            WriteLine("---- Properties ----");
             var enm = msg.Properties.GetEnumerator();
             while (enm.MoveNext())
             {
-                Console.WriteLine("{0}: {1}", enm.Key, enm.Value);
+                WriteLine("{0}: {1}", enm.Key, enm.Value);
                 var data = enm.Value as object[];
                 if (data != null)
                     DumpArray(data);
             }
 
-            Console.WriteLine("\n\n");
+            WriteLine("\n\n");
         }
         public static void DumpArray(object[] data)
         {
-            Console.WriteLine("\t---- Array ----");
+            WriteLine("\t---- Array ----");
             for (var i = 0; i < data.Length; i++)
-                Console.WriteLine("\t{0}: {1}", i, data[i]);
+                WriteLine("\t{0}: {1}", i, data[i]);
         }
         public static void DumpDictionary(IDictionary<string, object> dict)
         {
-            Console.WriteLine("\t---- Dictionary ----");
+            WriteLine("\t---- Dictionary ----");
             foreach (var i in dict)
-                Console.WriteLine("\t{0}: {1}", i.Key, i.Value);
+                WriteLine("\t{0}: {1}", i.Key, i.Value);
+        }
+
+        private static void WriteLine(string value)
+        {
+            Trace.WriteLine(value);
+        }
+        private static void WriteLine(string format, params object[] args)
+        {
+            Trace.WriteLine(string.Format(format, args));
         }
     }
 }

@@ -32,20 +32,24 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization.Formatters.Soap" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BinaryFormatterHelper.cs" />
+    <Compile Include="HTTP\HttpHeader.cs" />
+    <Compile Include="MessageHeader.cs" />
+    <Compile Include="SoapFormatterHelper.cs" />
     <Compile Include="DumpHelper.cs" />
+    <Compile Include="HTTP\HttpProtocolHandle.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TCP\TcpProtocolFlags.cs" />
     <Compile Include="TCP\TcpProtocolHandle.cs" />
+    <Compile Include="TCP\TcpTransportHeader.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="HTTP\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

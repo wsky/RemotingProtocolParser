@@ -45,11 +45,11 @@ namespace RemotingProtocolParserTest
                 using (var stream = client.GetStream())
                 {
                     var messageRequest = new MethodCall(new Header[] { 
-                        new Header("__Uri", uri),
-                        new Header("__MethodName", "Do"),
-                        new Header("__MethodSignature", new Type[] { typeof(string) }),
-                        new Header("__TypeName", typeof(ServiceClass).AssemblyQualifiedName),
-                        new Header("__Args", new object[] { "Hi" })
+                        new Header(MessageHeader.Uri, uri),
+                        new Header(MessageHeader.MethodName, "Do"),
+                        new Header(MessageHeader.MethodSignature, new Type[] { typeof(string) }),
+                        new Header(MessageHeader.TypeName, typeof(ServiceClass).AssemblyQualifiedName),
+                        new Header(MessageHeader.Args, new object[] { "Hi" })
                     });
                     var messageRequestStream = BinaryFormatterHelper.SerializeObject(messageRequest);
 
@@ -112,7 +112,7 @@ namespace RemotingProtocolParserTest
                 DumpHelper.DumpMessage(messageRequest);
 
                 //write remoting response
-                var responeMessage = new MethodResponse(new Header[] { new Header("__Return", messageRequest.Args[0]) }, messageRequest);
+                var responeMessage = new MethodResponse(new Header[] { new Header(MessageHeader.Return, messageRequest.Args[0]) }, messageRequest);
                 var responseStream = BinaryFormatterHelper.SerializeObject(responeMessage);
                 handle.WritePreamble();
                 handle.WriteMajorVersion();
@@ -130,11 +130,6 @@ namespace RemotingProtocolParserTest
             Assert.AreEqual("Hi", service.Do("Hi"));
 
             t.Abort();
-        }
-
-        private void RunRemotingServer()
-        {
-            
         }
 
         public class ServiceClass : MarshalByRefObject
