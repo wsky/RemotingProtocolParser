@@ -41,6 +41,7 @@
     <Compile Include="BinaryFormatterHelper.cs" />
     <Compile Include="HTTP\HttpHeader.cs" />
     <Compile Include="MessageHeader.cs" />
+    <Compile Include="ProtocolStreamHandle.cs" />
     <Compile Include="SoapFormatterHelper.cs" />
     <Compile Include="DumpHelper.cs" />
     <Compile Include="HTTP\HttpProtocolHandle.cs" />

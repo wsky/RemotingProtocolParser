@@ -5,7 +5,9 @@ Help communicating with .NET Remoting via MS build-in Binary or SOAP.
 
 You can refer it to build your CrossPlatform-ServiceFramework/RPC written by other language.
 
-Protocal parser logic:
+## Protocal parser logic:
+
+- TCP Channel
 
 ```c#
 //Read
@@ -22,11 +24,22 @@ Protocal parser logic:
 
 ```
 
+- HTTP Channel
+
+```c#
+//Read
+//1. Read FirstLine of HTTP Request, like "POST /remote.rem HTTP/1.1"
+//2. Read Http Headers, find out "Content-Length"
+//3. RequestStream/Message
+
+//Write
+//you can just using webclient sending common httprequest
+```
 
 ## Upcoming
 
-- HTTP Parser
-- Buffer Improvement
+- [X] HTTP Parser
+- [] Buffer Improvement
 - NSF supporing
 - .Net Remoting MockServer for testing
 - Parser of NodeJS

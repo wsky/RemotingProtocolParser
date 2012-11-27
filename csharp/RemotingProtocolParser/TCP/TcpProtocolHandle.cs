@@ -20,16 +20,11 @@ namespace RemotingProtocolParser.TCP
 {
     /// <summary>.Net Remoting Protocol (via TCP) Parser
     /// </summary>
-    public class TcpProtocolHandle
+    public class TcpProtocolHandle : ProtocolStreamHandle
     {
         private static readonly byte[] PREAMBLE = Encoding.ASCII.GetBytes(".NET");
-        private int _contentLength = -1;
-        private Stream _source;
         public TcpProtocolHandle() : this(new MemoryStream()) { }
-        public TcpProtocolHandle(Stream source)
-        {
-            this._source = source;
-        }
+        public TcpProtocolHandle(Stream source) : base(source) { }
 
         /// <summary>remoting protocol premable, expected value is ".NET".
         /// </summary>
@@ -127,23 +122,24 @@ namespace RemotingProtocolParser.TCP
                 else if (headerType == TcpHeaders.RequestUri)
                 {
                     this.ReadByte();//RequestUri-Format
-                    dict.Add("RequestUri", this.ReadCountedString());
+                    dict.Add(TcpTransportHeader.RequestUri, this.ReadCountedString());
                 }
                 else if (headerType == TcpHeaders.StatusCode)
                 {
                     this.ReadByte();//StatusCode-Format
-                    dict.Add("StatusCode", this.ReadUInt16());
+                    dict.Add(TcpTransportHeader.StatusCode, this.ReadUInt16());
+                    //HACK:error curse when StatusCode!=0
                     //if (code != 0) error = true;
                 }
                 else if (headerType == TcpHeaders.StatusPhrase)
                 {
                     this.ReadByte();//StatusPhrase-Format
-                    dict.Add("StatusPhrase", this.ReadCountedString());
+                    dict.Add(TcpTransportHeader.StatusPhrase, this.ReadCountedString());
                 }
                 else if (headerType == TcpHeaders.ContentType)
                 {
                     this.ReadByte();//ContentType-Format
-                    dict.Add("ContentType", this.ReadCountedString());
+                    dict.Add(TcpTransportHeader.ContentType, this.ReadCountedString());
                 }
                 else
                 {
@@ -159,6 +155,7 @@ namespace RemotingProtocolParser.TCP
                         default: throw new NotSupportedException();
                     }
                 }
+
                 headerType = this.ReadUInt16();
             }
             return dict;
@@ -171,9 +168,9 @@ namespace RemotingProtocolParser.TCP
             if (headers != null)
                 foreach (var i in headers)
                 {
-                    if (i.Key.Equals("ContentType", StringComparison.OrdinalIgnoreCase))
+                    if (i.Key.Equals(TcpTransportHeader.ContentType, StringComparison.OrdinalIgnoreCase))
                         this.WriteContentTypeHeader(i.Value.ToString());
-                    else if (i.Key.Equals("RequestUri", StringComparison.OrdinalIgnoreCase))
+                    else if (i.Key.Equals(TcpTransportHeader.RequestUri, StringComparison.OrdinalIgnoreCase))
                         //Request-Uri must be transport while request call
                         this.WriteRequestUriHeader(i.Value.ToString());
                     else
@@ -182,56 +179,9 @@ namespace RemotingProtocolParser.TCP
             this.WriteUInt16(TcpHeaders.EndOfHeaders);
         }
 
-        /// <summary>read message content by content-length
-        /// </summary>
-        /// <returns></returns>
-        public byte[] ReadContent()
-        {
-            if (this._contentLength == -1)
-                throw new InvalidOperationException(
-                    "You must call ReadContentLength first or ContentLength is invalid");
-            return this.ReadBytes(this._contentLength);
-        }
-        /// <summary>write serialized message content by content-length
-        /// </summary>
-        /// <param name="value"></param>
-        public void WriteContent(byte[] value)
-        {
-            if (value.Length != this._contentLength)
-                throw new InvalidOperationException("value length must be equal to ContentLength");
-            this.WriteBytes(value);
-        }
-
-        private int ReadByte()
-        {
-            var b = this._source.ReadByte();
-            if (b > -1)
-                return b;
-            else
-                return -1;
-        }
-        private void WriteByte(byte value)
-        {
-            this._source.WriteByte(value);
-        }
-
-        private byte[] ReadBytes(int length)
-        {
-            //TODO:improve btye buffer
-            //readBuffer as result buffer
-            //internal buffer (for read more than want)
-            var buffer = new byte[length];
-            this._source.Read(buffer, 0, length);
-            return buffer;
-        }
-        private void WriteBytes(byte[] value)
-        {
-            this._source.Write(value, 0, value.Length);
-        }
-
         private ushort ReadUInt16()
         {
-            return (UInt16)(this.ReadByte() & 0xFF | this.ReadByte() << 8);
+            return (ushort)(this.ReadByte() & 0xFF | this.ReadByte() << 8);
         }
         private void WriteUInt16(ushort value)
         {

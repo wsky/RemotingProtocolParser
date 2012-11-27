@@ -21,5 +21,7 @@ namespace RemotingProtocolParser.TCP
     {
         public const string RequestUri = "RequestUri";
         public const string ContentType = "ContentType";
+        public const string StatusCode = "StatusCode";
+        public const string StatusPhrase = "StatusPhrase";
     }
 }

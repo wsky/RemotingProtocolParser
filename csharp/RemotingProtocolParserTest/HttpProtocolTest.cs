@@ -81,7 +81,7 @@ namespace RemotingProtocolParserTest
                 var handle = new HttpProtocolHandle(c.GetStream());
 
                 //read remoting request
-                Trace.WriteLine(handle.ReaderFirstLine());
+                Trace.WriteLine(handle.ReadFirstLine());
                 DumpHelper.DumpDictionary(handle.ReadHeaders());
                 var messageRequest = BinaryFormatterHelper.DeserializeObject(handle.ReadContent()) as MethodCall;
 

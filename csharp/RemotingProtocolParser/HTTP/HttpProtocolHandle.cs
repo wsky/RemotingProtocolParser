@@ -20,25 +20,20 @@ namespace RemotingProtocolParser.HTTP
 {
     /// <summary>.Net Remoting Protocol (via HTTP) Parser
     /// </summary>
-    public class HttpProtocolHandle
+    public class HttpProtocolHandle : ProtocolStreamHandle
     {
-        private static byte[] s_httpVersion = Encoding.ASCII.GetBytes("HTTP/1.1");
-        private static byte[] s_httpVersionAndSpace = Encoding.ASCII.GetBytes("HTTP/1.1 ");
-        private static byte[] s_headerSeparator = new byte[] { (byte)':', (byte)' ' };
-        private static byte[] s_endOfLine = new byte[] { (byte)'\r', (byte)'\n' };
+        private static byte[] HTTP_VERSION = Encoding.ASCII.GetBytes("HTTP/1.1");
+        private static byte[] SPACE = Encoding.ASCII.GetBytes(" ");
+        private static byte[] HEADER_SEPARATOE = new byte[] { (byte)':', (byte)' ' };
+        private static byte[] END_OF_LINE = new byte[] { (byte)'\r', (byte)'\n' };
 
-        private int _contentLength = -1;
-        private Stream _source;
         public HttpProtocolHandle() : this(new MemoryStream()) { }
-        public HttpProtocolHandle(Stream source)
-        {
-            this._source = source;
-        }
+        public HttpProtocolHandle(Stream source) : base(source) { }
 
         /// <summary>eg: POST /remote.rem HTTP/1.1
         /// </summary>
         /// <returns></returns>
-        public string ReaderFirstLine()
+        public string ReadFirstLine()
         {
             return this.ReadToEndOfLine();
         }
@@ -52,8 +47,8 @@ namespace RemotingProtocolParser.HTTP
             this.WriteByte((byte)' ');
             this.WriteBytes(Encoding.ASCII.GetBytes(url));
             this.WriteByte((byte)' ');
-            this.WriteBytes(s_httpVersion);
-            this.WriteBytes(s_endOfLine);
+            this.WriteBytes(HTTP_VERSION);
+            this.WriteBytes(END_OF_LINE);
         }
         /// <summary>http response first line, eg: HTTP/1.1 200 ok
         /// </summary>
@@ -61,11 +56,12 @@ namespace RemotingProtocolParser.HTTP
         /// <param name="reasonPhrase"></param>
         public void WriteResponseFirstLine(string httpStatusCode, string reasonPhrase)
         {
-            this.WriteBytes(s_httpVersionAndSpace);
+            this.WriteBytes(HTTP_VERSION);
+            this.WriteBytes(SPACE);
             this.WriteBytes(Encoding.ASCII.GetBytes(httpStatusCode));
             this.WriteByte((byte)' ');
             this.WriteBytes(Encoding.ASCII.GetBytes(reasonPhrase));
-            this.WriteBytes(s_endOfLine);
+            this.WriteBytes(END_OF_LINE);
         }
 
         /// <summary>read all http headers
@@ -106,34 +102,16 @@ namespace RemotingProtocolParser.HTTP
                         this._contentLength = int.Parse(h.Value.ToString());
                     this.WriteHeader(h.Key, h.Value.ToString());
                 }
-            this.WriteBytes(s_endOfLine);
-        }
-
-        /// <summary>read message content by content-length
-        /// </summary>
-        /// <returns></returns>
-        public byte[] ReadContent()
-        {
-            return this.ReadBytes(this._contentLength);
-        }
-        /// <summary>write message content by content-length
-        /// </summary>
-        /// <param name="value"></param>
-        public void WriteContent(byte[] value)
-        {
-            if (value.Length != this._contentLength)
-                throw new InvalidOperationException("value length must be equal to ContentLength");
-            this.WriteBytes(value);
+            this.WriteBytes(END_OF_LINE);
         }
 
         private void WriteHeader(string name, string value)
         {
             this.WriteBytes(Encoding.ASCII.GetBytes(name));
-            this.WriteBytes(s_headerSeparator);
+            this.WriteBytes(HEADER_SEPARATOE);
             this.WriteBytes(Encoding.ASCII.GetBytes(value));
-            this.WriteBytes(s_endOfLine);
+            this.WriteBytes(END_OF_LINE);
         }
-
         private string ReadToEndOfLine()
         {
             var str = this.ReadToChar('\r');
@@ -171,28 +149,6 @@ namespace RemotingProtocolParser.HTTP
             }
 
             return readBytes;
-        }
-        private int ReadByte()
-        {
-            var b = this._source.ReadByte();
-            if (b > -1)
-                return b;
-            else
-                return -1;
-        }
-        private void WriteByte(byte value)
-        {
-            this._source.WriteByte(value);
-        }
-        private byte[] ReadBytes(int length)
-        {
-            var buffer = new byte[length];
-            this._source.Read(buffer, 0, length);
-            return buffer;
-        }
-        private void WriteBytes(byte[] value)
-        {
-            this._source.Write(value, 0, value.Length);
         }
     }
 }
