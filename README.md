@@ -5,6 +5,9 @@ Help communicating with .NET Remoting via MS build-in Binary or SOAP.
 
 You can refer it to build your CrossPlatform-ServiceFramework/RPC written by other language.
 
+Serialization is the main question finally, you need implement Other FormatterSink using JSON/Protobuf/... :)
+
+
 ## Protocal parser logic:
 
 - TCP Channel
@@ -40,11 +43,14 @@ You can refer it to build your CrossPlatform-ServiceFramework/RPC written by oth
 
 - [X] HTTP Parser
 - [] Buffer Improvement
-- NSF supporing
-- .Net Remoting MockServer for testing
-- [x] Parser of NodeJS
-- Parser of PHP
-- Parser of Java
+- [] NSF supporing
+- [] .Net Remoting MockServer for testing
+- [x] Parser of NodeJS (need json/soap or other formatterSink)
+
+## Later
+
+- [-] Parser of PHP
+- [-] Parser of Java
 
 [x] : done.
 
