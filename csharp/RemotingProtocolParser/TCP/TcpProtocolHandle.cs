@@ -117,7 +117,7 @@ namespace RemotingProtocolParser.TCP
             {
                 if (headerType == TcpHeaders.Custom)
                 {
-                    dict.Add(ReadCountedString(), this.ReadCountedString());
+                    dict.Add(this.ReadCountedString(), this.ReadCountedString());
                 }
                 else if (headerType == TcpHeaders.RequestUri)
                 {

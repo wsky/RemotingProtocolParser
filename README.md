@@ -42,9 +42,11 @@ You can refer it to build your CrossPlatform-ServiceFramework/RPC written by oth
 - [] Buffer Improvement
 - NSF supporing
 - .Net Remoting MockServer for testing
-- Parser of NodeJS
+- [x] Parser of NodeJS
 - Parser of PHP
 - Parser of Java
+
+[x] : done.
 
 ## Not Support
 

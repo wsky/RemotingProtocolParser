@@ -10,17 +10,39 @@
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-var parser = require('./lib/remotingProtocolParser'),
-	tcpWriter = parser.tcpWriter,
-	tcpReader = parser.tcpReader,
-	client = new require('net').Socket(),
-	HOST = 'localhost';
-	PORT = 8080;
-	ENCODING = 'ascii';
+
+//Remoting server do extend ServerFormatterSink 
+//using json serializer 
+//in this demo
+
+var parser 				= require('./lib/remotingProtocolParser'),
+	tcpWriter 			= parser.tcpWriter,
+	tcpReader 			= parser.tcpReader,
+	flags 				= parser.Flags(),
+	TcpOperations 		= flags.TcpOperations,
+	TcpTransportHeader 	= flags.TcpTransportHeader,
+
+	client 				= new require('net').Socket(),
+
+	HOST 				= 'localhost',
+	PORT 				= 8080,
+	URI 				= 'tcp://localhost:8080/remote',
+	ENCODING 			= 'ascii';
+
+console.log('---- NodeJS Remoting Parser ----');
 
 client.connect(PORT, HOST, function() {
+	//json message formatter
+	var msg = {
+		//typeName is not necessary.
+		//must be AssemblyQualifiedName.
+		TypeName 	: 'RemotingServer.ServiceClass,RemotingServer',
+		MethodName	: 'Do',
+		Args 		: ['hi']
+	};
+	var msgBuffer = new Buffer(JSON.stringify(msg), ENCODING);
+
 	//send remoting request
-	var msg = new Buffer('0123456789', ENCODING);
 	var w = tcpWriter(client);
 	//Preamble
 	w.writePreamble();
@@ -29,18 +51,22 @@ client.connect(PORT, HOST, function() {
 	//MinorVersion
 	w.writeMinorVersion();
 	//Operation
-	w.writeOperation(0);
+	w.writeOperation(TcpOperations.Request);
 	//ContentDelimiter
 	w.writeContentDelimiter();
 	//ContentLength
-	w.writeContentLength(msg.length);
+	w.writeContentLength(msgBuffer.length);
 	//Headers
-	w.writeHeaders();
+	var headers = {};
+	headers[TcpTransportHeader.RequestUri] = URI;
+	w.writeHeaders(headers);
 	//Content
-	w.writeContent(msg);
+	w.writeContent(msgBuffer);
 });
 
 client.on('data', function(data) {
+	//console.log(data.toString(ENCODING));
+
 	//read remoting response
 	var r = tcpReader(data);
 	console.log('---- received ----');
@@ -58,9 +84,14 @@ client.on('data', function(data) {
 	console.log('ContentLength: %s', r.readContentLength());
 	//Headers
 	console.log('---- Headers ----');
+	console.log(r.readHeaders());
 	//Content
 	console.log('---- Content ----');
-	console.log(r.readContent());
+	var msgBuffer = r.readContent();
+	console.log(msgBuffer);
+	var msg = JSON.parse(msgBuffer.toString());
+	console.log(msg);
+	console.log('return: %s', msg.Return);
 
 	client.end();
 });
