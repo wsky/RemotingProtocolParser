@@ -32,7 +32,7 @@ Serialization is the main question finally, you need implement Other FormatterSi
 ```c#
 //Read
 //1. Read FirstLine of HTTP Request, like "POST /remote.rem HTTP/1.1"
-//2. Read Http Headers, find out "Content-Length"
+//2. Read Http Headers, find out "Content-Length" or Chunked
 //3. RequestStream/Message
 
 //Write
@@ -42,7 +42,7 @@ Serialization is the main question finally, you need implement Other FormatterSi
 ## Upcoming
 
 - [X] HTTP Parser
-- [] Buffer Improvement
+- [] Buffer Improvement (Pooling/Management)
 - [] NSF supporing
 - [] .Net Remoting MockServer for testing
 - [x] Parser of NodeJS (need json/soap or other formatterSink)
@@ -69,7 +69,15 @@ Serialization is the main question finally, you need implement Other FormatterSi
 
 [A Note Of Remoting Protocol](https://github.com/ali-ent/apploader/issues/4)
 
+The .NET remoting framework was designed to be extensible.
+
+http://books.google.com.hk/books?id=rbW3qBrWiAcC&printsec=frontcover&hl=zh-CN#v=onepage&q&f=false
+
 [Async Sockets and Buffer Management](http://codebetter.com/gregyoung/2007/06/18/async-sockets-and-buffer-management/)
+
+Custom RealProxy that you can dynamic invoke remoting.
+
+https://github.com/wsky/RemotingProtocolParser/blob/master/csharp/RemotingProtocolParserTest/CustomRemotingProxyTest.cs
 
 ## License
 

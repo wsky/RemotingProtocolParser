@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="HttpProtocolTest.cs" />
     <Compile Include="Remoting.cs" />
+    <Compile Include="CustomRemotingProxyTest.cs" />
     <Compile Include="SampleParserTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TcpProtocolTest.cs" />
