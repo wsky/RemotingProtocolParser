@@ -69,6 +69,8 @@ Serialization is the main question finally, you need implement Other FormatterSi
 
 [A Note Of Remoting Protocol](https://github.com/ali-ent/apploader/issues/4)
 
+[Async Sockets and Buffer Management](http://codebetter.com/gregyoung/2007/06/18/async-sockets-and-buffer-management/)
+
 ## License
 
 (The MIT License)

@@ -48,12 +48,11 @@ module.exports.tcpWriter = function(socket) {
 		//end of header
 		writeUInt16(0);
 	};
-	//TODO:write json message matching server-side message sink
 	w.writeContent = function(v) {
 		socket.write(v);
 	};
 
-	//TODO:buffer management&pool
+	//TODO:need buffer pooling
 	function writeByte(v) {
 		socket.write(new Buffer([v]));
 	}
