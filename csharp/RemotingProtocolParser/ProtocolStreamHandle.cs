@@ -46,8 +46,10 @@ namespace RemotingProtocolParser
         {
             //TODO:improve btye buffer
             //readBuffer as result buffer
-            //internal buffer (for read more than want)
+            //HACK:.net remoting System.Runtime.Remoting.Channels。SocketHandler has best implementation
+            //HACK:mono remoting write relatively simple. maybe have Memory fragmentation problem.
             var buffer = new byte[length];
+            //buffer will pinned
             this._source.Read(buffer, 0, length);
             return buffer;
         }

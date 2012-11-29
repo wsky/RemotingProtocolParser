@@ -131,7 +131,8 @@ namespace RemotingProtocolParser.HTTP
         }
         private byte[] ReadToByte(byte b)
         {
-            //TODO:add byte read buffer design
+            //TODO:should read more than want, design internal readed buffer
+            //_source should not be networkstream while sync socket
             var readBytes = new byte[0];
             var find = false;
             while (!find)

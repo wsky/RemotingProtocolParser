@@ -73,11 +73,13 @@ The .NET remoting framework was designed to be extensible.
 
 http://books.google.com.hk/books?id=rbW3qBrWiAcC&printsec=frontcover&hl=zh-CN#v=onepage&q&f=false
 
-[Async Sockets and Buffer Management](http://codebetter.com/gregyoung/2007/06/18/async-sockets-and-buffer-management/)
-
-Custom RealProxy that you can dynamic invoke remoting.
+Custom RealProxy that you can dynamic invoke remoting:
 
 https://github.com/wsky/RemotingProtocolParser/blob/master/csharp/RemotingProtocolParserTest/CustomRemotingProxyTest.cs
+
+[Async Sockets and Buffer Management](http://codebetter.com/gregyoung/2007/06/18/async-sockets-and-buffer-management/)
+
+https://gist.github.com/4167477
 
 ## License
 
