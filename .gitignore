@@ -109,3 +109,18 @@ UpgradeLog*.XML
 
 
 Remoting.exe
+
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+.DS_Store
+.project
+.classpath
+.settings
+
+target
+
