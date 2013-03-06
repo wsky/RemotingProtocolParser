@@ -1,4 +1,4 @@
-﻿/*
+/*
     (The MIT License)
 
     Copyright (C) 2012 wsky (wskyhx at gmail.com) and other contributors
