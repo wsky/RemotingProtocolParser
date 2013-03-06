@@ -214,12 +214,17 @@ public class TcpProtocolHandle extends ProtocolStreamHandle {
 
 	private int ReadInt32()
 	{
-		return this._source.getInt();
+		this._source.order(ByteOrder.LITTLE_ENDIAN);
+		int value= this._source.getInt();
+		this._source.order(ByteOrder.BIG_ENDIAN);
+		return value;
 	}
 
 	private void WriteInt32(int value)
 	{
+		this._source.order(ByteOrder.LITTLE_ENDIAN);
 		this._source.putInt(value);
+		this._source.order(ByteOrder.BIG_ENDIAN);
 	}
 
 	private String ReadCountedString() throws NotSupportedException
