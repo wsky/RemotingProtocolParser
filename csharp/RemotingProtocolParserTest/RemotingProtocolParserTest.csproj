@@ -63,6 +63,7 @@
     <Compile Include="SampleParserTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TcpProtocolTest.cs" />
+    <Compile Include="BaseProtocolTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RemotingProtocolParser\RemotingProtocolParser.csproj">

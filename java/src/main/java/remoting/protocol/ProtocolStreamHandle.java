@@ -1,6 +1,7 @@
 package remoting.protocol;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 //Remoting Protocol stream read/write
 //ushort/uint...
@@ -11,6 +12,8 @@ public class ProtocolStreamHandle {
 	
 	protected ProtocolStreamHandle(ByteBuffer source) {
 		this._source = source;
+		//LITTLE_ENDIAN suit for c#
+		this._source.order(ByteOrder.LITTLE_ENDIAN);
 	}
 	
 	protected int ReadByte() {

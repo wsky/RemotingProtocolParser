@@ -13,6 +13,7 @@
 package remoting.protocol.tcp;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -23,253 +24,271 @@ import remoting.protocol.ProtocolStreamHandle;
 //.Net Remoting Protocol (via TCP) Parser
 public class TcpProtocolHandle extends ProtocolStreamHandle {
 	private final static byte[] PREAMBLE = ".NET".getBytes();
-	
+
 	public TcpProtocolHandle(ByteBuffer source) {
 		super(source);
 	}
-	
-	/// <summary>remoting protocol premable, expected value is ".NET".
-    /// </summary>
-    /// <returns></returns>
-    public String ReadPreamble()
-    {
-        return new String(new byte[] { 
-            (byte)this.ReadByte(), 
-            (byte)this.ReadByte(), 
-            (byte)this.ReadByte(), 
-            (byte)this.ReadByte() });
-    }
-    public void WritePreamble()
-    {
-        this.WriteBytes(PREAMBLE);
-    }
 
-    /// <summary>remoting protocol majorVersion, expected value is "1".
-    /// </summary>
-    /// <returns></returns>
-    public int ReadMajorVersion()
-    {
-        return this.ReadByte();
-    }
-    public void WriteMajorVersion()
-    {
-        this.WriteByte((byte)1);
-    }
+	// / <summary>remoting protocol premable, expected value is ".NET".
+	// / </summary>
+	// / <returns></returns>
+	public String ReadPreamble()
+	{
+		return new String(new byte[] {
+				(byte) this.ReadByte(),
+				(byte) this.ReadByte(),
+				(byte) this.ReadByte(),
+				(byte) this.ReadByte() });
+	}
 
-    /// <summary>remoting protocol minorVersion, expected value is "0".
-    /// </summary>
-    /// <returns></returns>
-    public int ReadMinorVersion()
-    {
-        return this.ReadByte();
-    }
-    public void WriteMinorVersion()
-    {
-        this.WriteByte((byte)0);
-    }
-    
-    /// <summary>remoting operation code, eg Request/OneWayRequest/Reply
-    /// </summary>
-    /// <returns></returns>
-    public short ReadOperation()
-    {
-        return this.ReadUInt16();
-    }
-    /// <summary>write remoting operation code
-    /// </summary>
-    /// <param name="value">Request/OneWayRequest/Reply</param>
-    public void WriteOperation(short value)
-    {
-        this.WriteUInt16(value);
-    }
+	public void WritePreamble()
+	{
+		this.WriteBytes(PREAMBLE);
+	}
 
-    /// <summary>Chunked or Fixed ContentLength. Only http channel support currently.
-    /// </summary>
-    /// <returns></returns>
-    public short ReadContentDelimiter()
-    {
-        return this.ReadUInt16();
-    }
-    /// <summary>ContentLength=0, Chunked=1
-    /// </summary>
-    /// <param name="value"></param>
-    public void WriteContentDelimiter(short value)
-    {
-        this.WriteUInt16(value);
-    }
+	// / <summary>remoting protocol majorVersion, expected value is "1".
+	// / </summary>
+	// / <returns></returns>
+	public int ReadMajorVersion()
+	{
+		return this.ReadByte();
+	}
 
-    /// <summary>get message content length
-    /// </summary>
-    /// <returns></returns>
-    public int ReadContentLength()
-    {
-        return this._contentLength = this.ReadInt32();
-    }
-    public void WriteContentLength(int value)
-    {
-        this.WriteInt32(this._contentLength = value);
-    }
+	public void WriteMajorVersion()
+	{
+		this.WriteByte((byte) 1);
+	}
 
-    public HashMap<String, Object> ReadTransportHeaders() throws NotSupportedException
-    {
-    	HashMap<String, Object> dict = new HashMap<String, Object>();
-        short headerType = this.ReadUInt16();
+	// / <summary>remoting protocol minorVersion, expected value is "0".
+	// / </summary>
+	// / <returns></returns>
+	public int ReadMinorVersion()
+	{
+		return this.ReadByte();
+	}
 
-        while (headerType != TcpHeaders.EndOfHeaders)
-        {
-            if (headerType == TcpHeaders.Custom)
-            {
-                dict.put(this.ReadCountedString(), this.ReadCountedString());
-            }
-            else if (headerType == TcpHeaders.RequestUri)
-            {
-                this.ReadByte();//RequestUri-Format
-                dict.put(TcpTransportHeader.RequestUri, this.ReadCountedString());
-            }
-            else if (headerType == TcpHeaders.StatusCode)
-            {
-                this.ReadByte();//StatusCode-Format
-                dict.put(TcpTransportHeader.StatusCode, this.ReadUInt16());
-                //HACK:error curse when StatusCode!=0
-                //if (code != 0) error = true;
-            }
-            else if (headerType == TcpHeaders.StatusPhrase)
-            {
-                this.ReadByte();//StatusPhrase-Format
-                dict.put(TcpTransportHeader.StatusPhrase, this.ReadCountedString());
-            }
-            else if (headerType == TcpHeaders.ContentType)
-            {
-                this.ReadByte();//ContentType-Format
-                dict.put(TcpTransportHeader.ContentType, this.ReadCountedString());
-            }
-            else
-            {
-                byte headerFormat = (byte)ReadByte();
+	public void WriteMinorVersion()
+	{
+		this.WriteByte((byte) 0);
+	}
 
-                switch (headerFormat)
-                {
-                    case TcpHeaderFormat.Void: break;
-                    case TcpHeaderFormat.CountedString: this.ReadCountedString(); break;
-                    case TcpHeaderFormat.Byte: this.ReadByte(); break;
-                    case TcpHeaderFormat.UInt16: this.ReadUInt16(); break;
-                    case TcpHeaderFormat.Int32: this.ReadInt32(); break;
-                    default: throw new NotSupportedException();
-                }
-            }
+	// / <summary>remoting operation code, eg Request/OneWayRequest/Reply
+	// / </summary>
+	// / <returns></returns>
+	public short ReadOperation()
+	{
+		return this.ReadUInt16();
+	}
 
-            headerType = this.ReadUInt16();
-        }
-        return dict;
-    }
-    /// <summary>write transport header. PS: "RequestUri" must be transport while request call
-    /// </summary>
-    /// <param name="headers"></param>
-    public void WriteTransportHeaders(HashMap<String, Object> headers)
-    {
-        if (headers != null)
-            for (Entry<String, Object> i:headers.entrySet())
-            {
-                if (i.getKey().equalsIgnoreCase(TcpTransportHeader.ContentType))
-                    this.WriteContentTypeHeader(i.getValue().toString());
-                else if (i.getKey().equalsIgnoreCase(TcpTransportHeader.RequestUri))
-                    //Request-Uri must be transport while request call
-                    this.WriteRequestUriHeader(i.getValue().toString());
-                else
-                    this.WriteCustomHeader(i.getKey(), i.getValue().toString());
-            }
-        this.WriteUInt16(TcpHeaders.EndOfHeaders);
-    }
+	// / <summary>write remoting operation code
+	// / </summary>
+	// / <param name="value">Request/OneWayRequest/Reply</param>
+	public void WriteOperation(short value)
+	{
+		this.WriteUInt16(value);
+	}
 
-    private short ReadUInt16()
-    {
-        return (short)(this.ReadByte() & 0xFF | this.ReadByte() << 8);
-    }
-    private void WriteUInt16(short value)
-    {
-        this.WriteByte((byte)value);
-        this.WriteByte((byte)(value >> 8));
-    }
+	// / <summary>Chunked or Fixed ContentLength. Only http channel support
+	// currently.
+	// / </summary>
+	// / <returns></returns>
+	public short ReadContentDelimiter()
+	{
+		return this.ReadUInt16();
+	}
 
-    private int ReadInt32()
-    {
-        return (int)((this.ReadByte() & 0xFF)
-            | this.ReadByte() << 8
-            | this.ReadByte() << 16
-            | this.ReadByte() << 24);
-    }
-    private void WriteInt32(int value)
-    {
-        this.WriteByte((byte)value);
-        this.WriteByte((byte)(value >> 8));
-        this.WriteByte((byte)(value >> 16));
-        this.WriteByte((byte)(value >> 24));
-    }
+	// / <summary>ContentLength=0, Chunked=1
+	// / </summary>
+	// / <param name="value"></param>
+	public void WriteContentDelimiter(short value)
+	{
+		this.WriteUInt16(value);
+	}
 
-    private String ReadCountedString() throws NotSupportedException
-    {
-        byte format = (byte)this.ReadByte();
-        int size = ReadInt32();
+	// / <summary>get message content length
+	// / </summary>
+	// / <returns></returns>
+	public int ReadContentLength()
+	{
+		return this._contentLength = this.ReadInt32();
+	}
 
-        if (size > 0)
-        {
-            byte[] data = this.ReadBytes(size);
+	public void WriteContentLength(int value)
+	{
+		this.WriteInt32(this._contentLength = value);
+	}
 
-            switch (format)
-            {
-                case TcpStringFormat.Unicode:
-                    return new String(data,Charset.forName("unicode"));
+	public HashMap<String, Object> ReadTransportHeaders() throws NotSupportedException
+	{
+		HashMap<String, Object> dict = new HashMap<String, Object>();
+		short headerType = this.ReadUInt16();
 
-                case TcpStringFormat.UTF8:
-                    return new String(data,Charset.forName("UTF-8"));
+		while (headerType != TcpHeaders.EndOfHeaders)
+		{
+			if (headerType == TcpHeaders.Custom)
+			{
+				dict.put(this.ReadCountedString(), this.ReadCountedString());
+			}
+			else if (headerType == TcpHeaders.RequestUri)
+			{
+				this.ReadByte();// RequestUri-Format
+				dict.put(TcpTransportHeader.RequestUri, this.ReadCountedString());
+			}
+			else if (headerType == TcpHeaders.StatusCode)
+			{
+				this.ReadByte();// StatusCode-Format
+				dict.put(TcpTransportHeader.StatusCode, this.ReadUInt16());
+				// HACK:error curse when StatusCode!=0
+				// if (code != 0) error = true;
+			}
+			else if (headerType == TcpHeaders.StatusPhrase)
+			{
+				this.ReadByte();// StatusPhrase-Format
+				dict.put(TcpTransportHeader.StatusPhrase, this.ReadCountedString());
+			}
+			else if (headerType == TcpHeaders.ContentType)
+			{
+				this.ReadByte();// ContentType-Format
+				dict.put(TcpTransportHeader.ContentType, this.ReadCountedString());
+			}
+			else
+			{
+				byte headerFormat = (byte) ReadByte();
 
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-        else
-        {
-            return null;
-        }
-    }
-    private void WriteCountedString(String value)
-    {
-        int strLength = 0;
-        if (value != null)
-            strLength = value.length();
+				switch (headerFormat)
+				{
+				case TcpHeaderFormat.Void:
+					break;
+				case TcpHeaderFormat.CountedString:
+					this.ReadCountedString();
+					break;
+				case TcpHeaderFormat.Byte:
+					this.ReadByte();
+					break;
+				case TcpHeaderFormat.UInt16:
+					this.ReadUInt16();
+					break;
+				case TcpHeaderFormat.Int32:
+					this.ReadInt32();
+					break;
+				default:
+					throw new NotSupportedException();
+				}
+			}
 
-        if (strLength > 0)
-        {
-            byte[] strBytes = value.getBytes(Charset.forName("UTF-8"));
-            this.WriteByte(TcpStringFormat.UTF8);
-            this.WriteInt32(strBytes.length);
-            this.WriteBytes(strBytes);
-        }
-        else
-        {
-            //just call it Unicode (doesn't matter since there is no data)
-            this.WriteByte(TcpStringFormat.Unicode);
-            this.WriteInt32(0);
-        }
-    }
+			headerType = this.ReadUInt16();
+		}
+		return dict;
+	}
 
-    private void WriteRequestUriHeader(String value)
-    {
-        //value maybe "application/octet-stream"
-        this.WriteUInt16(TcpHeaders.RequestUri);
-        this.WriteByte(TcpHeaderFormat.CountedString);
-        this.WriteCountedString(value);
-    }
-    private void WriteContentTypeHeader(String value)
-    {
-        this.WriteUInt16(TcpHeaders.ContentType);
-        this.WriteByte(TcpHeaderFormat.CountedString);
-        this.WriteCountedString(value);
-    }
-    private void WriteCustomHeader(String name, String value)
-    {
-        this.WriteUInt16(TcpHeaders.Custom);
-        this.WriteCountedString(name);
-        this.WriteCountedString(value);
-    }
+	// / <summary>write transport header. PS: "RequestUri" must be transport
+	// while request call
+	// / </summary>
+	// / <param name="headers"></param>
+	public void WriteTransportHeaders(HashMap<String, Object> headers)
+	{
+		if (headers != null)
+			for (Entry<String, Object> i : headers.entrySet())
+			{
+				if (i.getKey().equalsIgnoreCase(TcpTransportHeader.ContentType))
+					this.WriteContentTypeHeader(i.getValue().toString());
+				else if (i.getKey().equalsIgnoreCase(TcpTransportHeader.RequestUri))
+					// Request-Uri must be transport while request call
+					this.WriteRequestUriHeader(i.getValue().toString());
+				else
+					this.WriteCustomHeader(i.getKey(), i.getValue().toString());
+			}
+		this.WriteUInt16(TcpHeaders.EndOfHeaders);
+	}
+
+	private short ReadUInt16()
+	{
+		return (short) (this.ReadByte() & 0xFF | this.ReadByte() << 8);
+	}
+
+	private void WriteUInt16(short value)
+	{
+		this.WriteByte((byte) value);
+		this.WriteByte((byte) (value >> 8));
+	}
+
+	private int ReadInt32()
+	{
+		return this._source.getInt();
+	}
+
+	private void WriteInt32(int value)
+	{
+		this._source.putInt(value);
+	}
+
+	private String ReadCountedString() throws NotSupportedException
+	{
+		byte format = (byte) this.ReadByte();
+		int size = ReadInt32();
+
+		if (size > 0)
+		{
+			byte[] data = this.ReadBytes(size);
+
+			switch (format)
+			{
+			case TcpStringFormat.Unicode:
+				return new String(data, Charset.forName("unicode"));
+
+			case TcpStringFormat.UTF8:
+				return new String(data, Charset.forName("UTF-8"));
+
+			default:
+				throw new NotSupportedException();
+			}
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	private void WriteCountedString(String value)
+	{
+		int strLength = 0;
+		if (value != null)
+			strLength = value.length();
+
+		if (strLength > 0)
+		{
+			byte[] strBytes = value.getBytes(Charset.forName("UTF-8"));
+			this.WriteByte(TcpStringFormat.UTF8);
+			this.WriteInt32(strBytes.length);
+			this.WriteBytes(strBytes);
+		}
+		else
+		{
+			// just call it Unicode (doesn't matter since there is no data)
+			this.WriteByte(TcpStringFormat.Unicode);
+			this.WriteInt32(0);
+		}
+	}
+
+	private void WriteRequestUriHeader(String value)
+	{
+		// value maybe "application/octet-stream"
+		this.WriteUInt16(TcpHeaders.RequestUri);
+		this.WriteByte(TcpHeaderFormat.CountedString);
+		this.WriteCountedString(value);
+	}
+
+	private void WriteContentTypeHeader(String value)
+	{
+		this.WriteUInt16(TcpHeaders.ContentType);
+		this.WriteByte(TcpHeaderFormat.CountedString);
+		this.WriteCountedString(value);
+	}
+
+	private void WriteCustomHeader(String name, String value)
+	{
+		this.WriteUInt16(TcpHeaders.Custom);
+		this.WriteCountedString(name);
+		this.WriteCountedString(value);
+	}
 }
