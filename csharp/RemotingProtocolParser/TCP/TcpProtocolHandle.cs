@@ -168,7 +168,11 @@ namespace RemotingProtocolParser.TCP
             if (headers != null)
                 foreach (var i in headers)
                 {
-                    if (i.Key.Equals(TcpTransportHeader.ContentType, StringComparison.OrdinalIgnoreCase))
+                    if (i.Key.Equals(TcpTransportHeader.StatusCode, StringComparison.OrdinalIgnoreCase))
+                        this.WriteStatusCodeHeader((ushort)i.Value);
+                    else if (i.Key.Equals(TcpTransportHeader.StatusPhrase, StringComparison.OrdinalIgnoreCase))
+                        this.WriteStatusPhraseHeader(i.Value.ToString());
+                    else if (i.Key.Equals(TcpTransportHeader.ContentType, StringComparison.OrdinalIgnoreCase))
                         this.WriteContentTypeHeader(i.Value.ToString());
                     else if (i.Key.Equals(TcpTransportHeader.RequestUri, StringComparison.OrdinalIgnoreCase))
                         //Request-Uri must be transport while request call
@@ -261,6 +265,18 @@ namespace RemotingProtocolParser.TCP
         private void WriteContentTypeHeader(string value)
         {
             this.WriteUInt16(TcpHeaders.ContentType);
+            this.WriteByte(TcpHeaderFormat.CountedString);
+            this.WriteCountedString(value);
+        }
+        private void WriteStatusCodeHeader(ushort value)
+        {
+            this.WriteUInt16(TcpHeaders.StatusCode);
+            this.WriteByte(TcpHeaderFormat.UInt16);
+            this.WriteUInt16(value);
+        }
+        private void WriteStatusPhraseHeader(string value)
+        {
+            this.WriteUInt16(TcpHeaders.StatusPhrase);
             this.WriteByte(TcpHeaderFormat.CountedString);
             this.WriteCountedString(value);
         }

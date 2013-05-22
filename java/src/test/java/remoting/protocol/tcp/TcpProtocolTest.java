@@ -20,10 +20,10 @@ public class TcpProtocolTest {
 		write_read_contentLength_test(10000);
 		write_read_contentLength_test(100000);
 
-		byte b=(byte) 160;
+		byte b = (byte) 160;
 		System.out.println(b);
-		
-		//can support .net(c#) usignedbyte
+
+		// can support .net(c#) usignedbyte
 		ByteBuffer buffer = ByteBuffer.wrap(new byte[] { (byte) 160, (byte) 134, 1, 0 });
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 		assertEquals(100000, buffer.getInt());
@@ -38,6 +38,8 @@ public class TcpProtocolTest {
 		ByteBuffer buffer = ByteBuffer.allocate(1024);
 		HashMap<String, Object> transportHeaders = new HashMap<String, Object>();
 		transportHeaders.put("key", "key");
+		transportHeaders.put(TcpTransportHeader.StatusCode, 123);
+		transportHeaders.put(TcpTransportHeader.StatusPhrase, "123");
 		byte[] data = new byte[] { 'h', 'i' };
 		int contentLength = 2;
 
@@ -58,7 +60,11 @@ public class TcpProtocolTest {
 		assertEquals(TcpOperations.Request, handle.ReadOperation());
 		assertEquals(TcpContentDelimiter.ContentLength, handle.ReadContentDelimiter());
 		assertEquals(contentLength, handle.ReadContentLength());
-		assertEquals("key", handle.ReadTransportHeaders().get("key"));
+		HashMap<String, Object> transportHeaders2 = handle.ReadTransportHeaders();
+		System.out.println(transportHeaders2);
+		assertEquals("key", transportHeaders2.get("key"));
+		assertEquals((short) 123, transportHeaders2.get(TcpTransportHeader.StatusCode));
+		assertEquals("123", transportHeaders2.get(TcpTransportHeader.StatusPhrase));
 		assertEquals("hi", new String(handle.ReadContent()));
 	}
 

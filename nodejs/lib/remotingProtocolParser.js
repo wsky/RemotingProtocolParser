@@ -38,7 +38,11 @@ module.exports.tcpWriter = function(socket) {
 	w.writeHeaders = function(headers) {
 		if(headers != null)
 			for(var k in headers) {
-				if(k == TcpTransportHeader.ContentType)
+				if(k == TcpTransportHeader.StatusCode)
+					writeStatusCodeHeader(headers[k]);
+				else if(k == TcpTransportHeader.StatusPhrase)
+					writeStatusPhraseHeader(headers[k]);
+				else if(k == TcpTransportHeader.ContentType)
 					writeContentTypeHeader(headers[k]);
 				else if(k == TcpTransportHeader.RequestUri)
 					writeRequestUriHeader(headers[k]);
@@ -98,6 +102,16 @@ module.exports.tcpWriter = function(socket) {
 	}
 	function writeContentTypeHeader(v) {
         writeUInt16(TcpHeaders.ContentType);
+		writeByte(TcpHeaderFormat.CountedString);
+		writeCountedString(v);
+    }
+    function writeStatusCodeHeader(v) {
+        writeUInt16(TcpHeaders.StatusCode);
+		writeByte(TcpHeaderFormat.UInt16);
+		writeUInt16(v);
+    }
+	function writeStatusPhraseHeader(v) {
+        writeUInt16(TcpHeaders.StatusPhrase);
 		writeByte(TcpHeaderFormat.CountedString);
 		writeCountedString(v);
     }

@@ -190,7 +190,11 @@ public class TcpProtocolHandle extends ProtocolStreamHandle {
 		if (headers != null)
 			for (Entry<String, Object> i : headers.entrySet())
 			{
-				if (i.getKey().equalsIgnoreCase(TcpTransportHeader.ContentType))
+				if (i.getKey().equalsIgnoreCase(TcpTransportHeader.StatusCode))
+					this.WriteStatusCodeHeader(Short.parseShort(i.getValue().toString()));
+				else if (i.getKey().equalsIgnoreCase(TcpTransportHeader.StatusPhrase))
+					this.WriteStatusPhraseHeader(i.getValue().toString());
+				else if (i.getKey().equalsIgnoreCase(TcpTransportHeader.ContentType))
 					this.WriteContentTypeHeader(i.getValue().toString());
 				else if (i.getKey().equalsIgnoreCase(TcpTransportHeader.RequestUri))
 					// Request-Uri must be transport while request call
@@ -215,7 +219,7 @@ public class TcpProtocolHandle extends ProtocolStreamHandle {
 	private int ReadInt32()
 	{
 		this._source.order(ByteOrder.LITTLE_ENDIAN);
-		int value= this._source.getInt();
+		int value = this._source.getInt();
 		this._source.order(ByteOrder.BIG_ENDIAN);
 		return value;
 	}
@@ -286,6 +290,20 @@ public class TcpProtocolHandle extends ProtocolStreamHandle {
 	private void WriteContentTypeHeader(String value)
 	{
 		this.WriteUInt16(TcpHeaders.ContentType);
+		this.WriteByte(TcpHeaderFormat.CountedString);
+		this.WriteCountedString(value);
+	}
+
+	private void WriteStatusCodeHeader(short value)
+	{
+		this.WriteUInt16(TcpHeaders.StatusCode);
+		this.WriteByte(TcpHeaderFormat.UInt16);
+		this.WriteUInt16(value);
+	}
+
+	private void WriteStatusPhraseHeader(String value)
+	{
+		this.WriteUInt16(TcpHeaders.StatusPhrase);
 		this.WriteByte(TcpHeaderFormat.CountedString);
 		this.WriteCountedString(value);
 	}
