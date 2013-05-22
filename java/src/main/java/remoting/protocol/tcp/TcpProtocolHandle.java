@@ -211,7 +211,7 @@ public class TcpProtocolHandle extends ProtocolStreamHandle {
 		this.WriteUInt16(TcpHeaders.EndOfHeaders);
 	}
 	
-	protected boolean readExtendedHeader(short headerType,HashMap<String, Object> dict) {
+	protected boolean readExtendedHeader(short headerType,HashMap<String, Object> dict) throws NotSupportedException {
 		return false;
 	}
 	
