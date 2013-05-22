@@ -151,6 +151,10 @@ public class TcpProtocolHandle extends ProtocolStreamHandle {
 				this.ReadByte();// ContentType-Format
 				dict.put(TcpTransportHeader.ContentType, this.ReadCountedString());
 			}
+			else if (this.readExtendedHeader(headerType, dict)) 
+			{
+				
+			}
 			else
 			{
 				byte headerFormat = (byte) ReadByte();
@@ -199,24 +203,34 @@ public class TcpProtocolHandle extends ProtocolStreamHandle {
 				else if (i.getKey().equalsIgnoreCase(TcpTransportHeader.RequestUri))
 					// Request-Uri must be transport while request call
 					this.WriteRequestUriHeader(i.getValue().toString());
+				else if(this.writeExtendedHeader(i))
+					;
 				else
 					this.WriteCustomHeader(i.getKey(), i.getValue().toString());
 			}
 		this.WriteUInt16(TcpHeaders.EndOfHeaders);
 	}
+	
+	protected boolean readExtendedHeader(short headerType,HashMap<String, Object> dict) {
+		return false;
+	}
+	
+	protected boolean writeExtendedHeader(Entry<String, Object> entry) {
+		return false;
+	}
 
-	private short ReadUInt16()
+	protected final short ReadUInt16()
 	{
 		return (short) (this.ReadByte() & 0xFF | this.ReadByte() << 8);
 	}
 
-	private void WriteUInt16(short value)
+	protected final void WriteUInt16(short value)
 	{
 		this.WriteByte((byte) value);
 		this.WriteByte((byte) (value >> 8));
 	}
 
-	private int ReadInt32()
+	protected final int ReadInt32()
 	{
 		this._source.order(ByteOrder.LITTLE_ENDIAN);
 		int value = this._source.getInt();
@@ -224,14 +238,14 @@ public class TcpProtocolHandle extends ProtocolStreamHandle {
 		return value;
 	}
 
-	private void WriteInt32(int value)
+	protected final void WriteInt32(int value)
 	{
 		this._source.order(ByteOrder.LITTLE_ENDIAN);
 		this._source.putInt(value);
 		this._source.order(ByteOrder.BIG_ENDIAN);
 	}
 
-	private String ReadCountedString() throws NotSupportedException
+	protected final String ReadCountedString() throws NotSupportedException
 	{
 		byte format = (byte) this.ReadByte();
 		int size = ReadInt32();
@@ -258,7 +272,7 @@ public class TcpProtocolHandle extends ProtocolStreamHandle {
 		}
 	}
 
-	private void WriteCountedString(String value)
+	protected final void WriteCountedString(String value)
 	{
 		int strLength = 0;
 		if (value != null)
