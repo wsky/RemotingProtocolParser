@@ -230,7 +230,7 @@ public class TcpProtocolHandle extends ProtocolStreamHandle {
 		this.WriteByte((byte) (value >> 8));
 	}
 
-	protected final int ReadInt32()
+	protected int ReadInt32()
 	{
 		this._source.order(ByteOrder.LITTLE_ENDIAN);
 		int value = this._source.getInt();
@@ -238,7 +238,7 @@ public class TcpProtocolHandle extends ProtocolStreamHandle {
 		return value;
 	}
 
-	protected final void WriteInt32(int value)
+	protected void WriteInt32(int value)
 	{
 		this._source.order(ByteOrder.LITTLE_ENDIAN);
 		this._source.putInt(value);
