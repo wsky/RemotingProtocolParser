@@ -13,7 +13,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace RemotingProtocolParser.TCP
@@ -141,6 +140,9 @@ namespace RemotingProtocolParser.TCP
                     this.ReadByte();//ContentType-Format
                     dict.Add(TcpTransportHeader.ContentType, this.ReadCountedString());
                 }
+                else if (this.ReadExtendedHeader(headerType, dict))
+                {
+                }
                 else
                 {
                     var headerFormat = (byte)ReadByte();
@@ -177,30 +179,40 @@ namespace RemotingProtocolParser.TCP
                     else if (i.Key.Equals(TcpTransportHeader.RequestUri, StringComparison.OrdinalIgnoreCase))
                         //Request-Uri must be transport while request call
                         this.WriteRequestUriHeader(i.Value.ToString());
+                    else if (this.WriteExtendedHeader(i)) { }
                     else
                         this.WriteCustomHeader(i.Key, i.Value.ToString());
                 }
             this.WriteUInt16(TcpHeaders.EndOfHeaders);
         }
 
-        private ushort ReadUInt16()
+        protected virtual bool ReadExtendedHeader(ushort headerType, IDictionary<String, Object> dict)
+        {
+            return false;
+        }
+        protected virtual bool WriteExtendedHeader(KeyValuePair<string, object> item)
+        {
+            return false;
+        }
+
+        protected ushort ReadUInt16()
         {
             return (ushort)(this.ReadByte() & 0xFF | this.ReadByte() << 8);
         }
-        private void WriteUInt16(ushort value)
+        protected void WriteUInt16(ushort value)
         {
             this.WriteByte((byte)value);
             this.WriteByte((byte)(value >> 8));
         }
 
-        private int ReadInt32()
+        protected int ReadInt32()
         {
             return (int)((this.ReadByte() & 0xFF)
                 | this.ReadByte() << 8
                 | this.ReadByte() << 16
                 | this.ReadByte() << 24);
         }
-        private void WriteInt32(int value)
+        protected void WriteInt32(int value)
         {
             this.WriteByte((byte)value);
             this.WriteByte((byte)(value >> 8));
@@ -208,7 +220,7 @@ namespace RemotingProtocolParser.TCP
             this.WriteByte((byte)(value >> 24));
         }
 
-        private string ReadCountedString()
+        protected string ReadCountedString()
         {
             var format = (byte)this.ReadByte();
             int size = ReadInt32();
@@ -234,7 +246,7 @@ namespace RemotingProtocolParser.TCP
                 return null;
             }
         }
-        private void WriteCountedString(string value)
+        protected void WriteCountedString(string value)
         {
             int strLength = 0;
             if (value != null)
