@@ -1,10 +1,10 @@
 package remoting.protocol.http;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import remoting.protocol.CompatibleUtil;
 import remoting.protocol.ProtocolStreamHandle;
 
 public class HttpProtocolHandle extends ProtocolStreamHandle {
@@ -12,11 +12,11 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 	private static byte[] SPACE = " ".getBytes();
 	private static byte[] HEADER_SEPARATOE = new byte[] { (byte) ':', (byte) ' ' };
 	private static byte[] END_OF_LINE = new byte[] { (byte) '\r', (byte) '\n' };
-
+	
 	public HttpProtocolHandle(ByteBuffer source) {
 		super(source);
 	}
-
+	
 	// / <summary>eg: POST /remote.rem HTTP/1.1
 	// / </summary>
 	// / <returns></returns>
@@ -24,7 +24,7 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 	{
 		return this.ReadToEndOfLine();
 	}
-
+	
 	// / <summary>http request first line, eg: POST /remote.rem HTTP/1.1
 	// / </summary>
 	// / <param name="requestVerb">GET/POST</param>
@@ -38,7 +38,7 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 		this.WriteBytes(HTTP_VERSION);
 		this.WriteBytes(END_OF_LINE);
 	}
-
+	
 	// / <summary>http response first line, eg: HTTP/1.1 200 ok
 	// / </summary>
 	// / <param name="httpStatusCode"></param>
@@ -52,7 +52,7 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 		this.WriteBytes(reasonPhrase.getBytes());
 		this.WriteBytes(END_OF_LINE);
 	}
-
+	
 	// / <summary>read all http headers
 	// / </summary>
 	// / <returns></returns>
@@ -62,16 +62,16 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 		while (true)
 		{
 			String header = this.ReadToEndOfLine();
-
+			
 			if (header.length() == 0)
 				break;
-
+			
 			int sep = header.indexOf(":");
 			String headerName = header.substring(0, sep);
 			// skip semi-colon and space?
 			String headerValue = header.substring(sep + 1 + 1);
 			dict.put(headerName, headerValue);
-
+			
 			if (headerName.equalsIgnoreCase(HttpHeader.ContentLength))
 			{
 				this._contentLength = Integer.parseInt(headerValue);
@@ -79,7 +79,7 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 		}
 		return dict;
 	}
-
+	
 	// / <summary>write http headers
 	// / </summary>
 	// / <param name="headers"></param>
@@ -94,7 +94,7 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 			}
 		this.WriteBytes(END_OF_LINE);
 	}
-
+	
 	private void WriteHeader(String name, String value)
 	{
 		this.WriteBytes(name.getBytes());
@@ -102,7 +102,7 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 		this.WriteBytes(value.getBytes());
 		this.WriteBytes(END_OF_LINE);
 	}
-
+	
 	private String ReadToEndOfLine()
 	{
 		String str = this.ReadToChar('\r');
@@ -111,7 +111,7 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 		else
 			return null;
 	}
-
+	
 	private String ReadToChar(char value)
 	{
 		byte[] strBytes = this.ReadToByte((byte) value);
@@ -119,9 +119,9 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 			return null;
 		if (strBytes.length == 0)
 			return "";
-		return new String(strBytes, Charset.forName("ASCII"));
+		return CompatibleUtil.newString(strBytes, "ASCII");
 	}
-
+	
 	private byte[] ReadToByte(byte b)
 	{
 		// TODO:should read more than want, design internal readed buffer
@@ -132,7 +132,7 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 		{
 			byte read = (byte) this.ReadByte();
 			find = read == b;
-
+			
 			if (!find)
 			{
 				byte[] ret = new byte[readBytes.length + 1];
@@ -141,8 +141,8 @@ public class HttpProtocolHandle extends ProtocolStreamHandle {
 				readBytes = ret;
 			}
 		}
-
+		
 		return readBytes;
 	}
-
+	
 }
